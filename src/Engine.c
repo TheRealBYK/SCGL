@@ -1,8 +1,7 @@
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
-// ... other defines ...
 #define NK_IMPLEMENTATION
-#define NK_GLFW_GL3_IMPLEMENTATION // or NK_GLFW_GL2_IMPLEMENTATION
+#define NK_GLFW_GL3_IMPLEMENTATION
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
@@ -125,10 +124,8 @@ void installShaders()
     
     const GLchar* vertexCode = LoadShaderCode(adapter[0], "src/shaders/VertexShader.glsl");
     glShaderSource(vertexShaderID, 1, &vertexCode, 0);
-    // printf("SHADER: %s\n", vertexCode);
     const GLchar* fragmentCode = LoadShaderCode(adapter[1], "src/shaders/FragmentShader.glsl");
     glShaderSource(fragmentShaderID, 1, &fragmentCode, 0);
-    // printf("SHADER: %s\n", fragmentCode);
 
     glCompileShader(vertexShaderID);
     glCompileShader(fragmentShaderID);
