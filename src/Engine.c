@@ -122,9 +122,9 @@ void installShaders()
 
     GLchar adapter[2][1024] = {{0}};
     
-    const GLchar* vertexCode = LoadShaderCode(adapter[0], "src/shaders/VertexShader.glsl");
+    const GLchar* vertexCode = LoadShaderCode(adapter[0], "res/shaders/VertexShader.glsl");
     glShaderSource(vertexShaderID, 1, &vertexCode, 0);
-    const GLchar* fragmentCode = LoadShaderCode(adapter[1], "src/shaders/FragmentShader.glsl");
+    const GLchar* fragmentCode = LoadShaderCode(adapter[1], "res/shaders/FragmentShader.glsl");
     glShaderSource(fragmentShaderID, 1, &fragmentCode, 0);
 
     glCompileShader(vertexShaderID);
