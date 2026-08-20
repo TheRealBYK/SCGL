@@ -1,13 +1,8 @@
-#define NK_INCLUDE_FIXED_TYPES
-#define NK_INCLUDE_STANDARD_IO
-#define NK_IMPLEMENTATION
-#define NK_GLFW_GL3_IMPLEMENTATION
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include "glad/gl.h"
 #include <GLFW/glfw3.h>
-#include <nuklear.h>
 #include "Shapes.h"
 
 void sendDataToOpenGL();
