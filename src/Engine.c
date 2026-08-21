@@ -5,8 +5,19 @@
 #include <GLFW/glfw3.h>
 #include "Shapes.h"
 
+typedef enum {
+    SCGL_NONE = -1,
+    SCGL_VERTEX = 0,
+    SCGL_FRAGMENT = 1,
+}ShaderType;
+
+typedef struct {
+    char vertexSource[1024];
+    char fragmentSource[1024];
+}ShaderVertFragSource;
+
 void sendDataToOpenGL();
-const char* LoadShaderCode(char* shaderStrBuf, const char* fileName);
+ShaderVertFragSource* LoadShaderCode(ShaderVertFragSource* shaderStrBuf, const char* fileName, ShaderType type);
 void installShaders();
 bool checkStatus(GLuint objectID, PFNGLGETSHADERIVPROC objectPropertyGetterFunc, PFNGLGETSHADERINFOLOGPROC getInfoLogFunc, GLenum statusType);
 bool checkShaderStatus(GLuint shaderID);
@@ -87,27 +98,75 @@ void sendDataToOpenGL()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 }
 
-const char* LoadShaderCode(char* shaderStrBuf, const char* fileName)
+ShaderVertFragSource* LoadShaderCode(ShaderVertFragSource* shaderStrBuf, const char* fileName, ShaderType type)
 {
+    if (type != SCGL_NONE && type != SCGL_VERTEX && type != SCGL_FRAGMENT)
+    {
+        printf("Incorrect type detected!\n");
+	return shaderStrBuf;
+    }
+    memset(shaderStrBuf->vertexSource, 0, sizeof(shaderStrBuf->vertexSource));
+    memset(shaderStrBuf->fragmentSource, 0, sizeof(shaderStrBuf->fragmentSource));
     char buffer[256] = {0};
     printf("Opening file: %s\n", fileName);
     FILE* pFile = fopen(fileName, "r");
 
     if (pFile == NULL){
 	printf("Error Opening file!");
-	return NULL;
+	return shaderStrBuf;
     }
 
     unsigned int strRemainder = sizeof(buffer) - strlen(buffer) - 1;
 
-    while (fgets(buffer, sizeof(buffer), pFile) != NULL) {
-	strncat(shaderStrBuf, buffer, strRemainder);
-	strRemainder = sizeof(buffer) - strlen(buffer) - 1;
+    if (type == SCGL_NONE)
+    {
+	char shaderBuffers[2][1024] = {{0}};
+	ShaderType sType;
+	while (fgets(buffer, sizeof(buffer), pFile) != NULL) {
+	    if (strncmp(buffer, "#shader", (size_t)7) == 0)
+	    {
+		if (strncmp(&buffer[8], "vertex", (size_t)6) == 0)
+		{
+		    sType = SCGL_VERTEX;
+		}
+		else if (strncmp(&buffer[8], "fragment", (size_t)8) == 0)
+		{ 
+		    sType = SCGL_FRAGMENT;
+		}
+	    }
+	    else 
+	    {
+		strncat(shaderBuffers[sType], buffer, strRemainder);
+		strRemainder = sizeof(buffer) - strlen(buffer) - 1;
+	    }
+	}
+	strncpy(shaderStrBuf->vertexSource, shaderBuffers[0], strlen(shaderBuffers[0]) - 1);
+	strncpy(shaderStrBuf->fragmentSource, shaderBuffers[1], strlen(shaderBuffers[1]) - 1);
+	shaderStrBuf->vertexSource[strlen(shaderStrBuf->vertexSource) - 1] = '\0';
+    }
+    else
+    {
+	char shaderBuf[1024] = {0};
+	while (fgets(buffer, sizeof(buffer), pFile) != NULL) {
+	    strncat(shaderBuf, buffer, strRemainder);
+	    strRemainder = sizeof(shaderBuf) - strlen(shaderBuf) - 1;
+	}
+	if (type == SCGL_VERTEX)
+	{
+	    strncpy(shaderStrBuf->vertexSource, shaderBuf, strlen(shaderBuf));
+	    strncpy(shaderStrBuf->fragmentSource, " \0", sizeof(" \0"));
+	    // shaderStrBuf->vertexSource[strlen(shaderStrBuf->vertexSource) - 1] = '\0';
+	}
+	else if (type == SCGL_FRAGMENT)
+	{
+	    strncpy(shaderStrBuf->fragmentSource, shaderBuf, sizeof(shaderBuf));
+	    strncpy(shaderStrBuf->vertexSource, " \0", sizeof(" \0"));
+	    // shaderStrBuf->fragmentSource[strlen(shaderStrBuf->fragmentSource) - 1] = '\0';
+	}
     }
     fclose(pFile);
     printf("Closing file: %s\n", fileName);
-    const char* interShader = shaderStrBuf;
-    return interShader;
+    return shaderStrBuf;
 }
 
 void installShaders()
@@ -116,11 +175,19 @@ void installShaders()
     GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
     GLchar adapter[2][1024] = {{0}};
-    
-    const GLchar* vertexCode = LoadShaderCode(adapter[0], "res/shaders/VertexShader.glsl");
-    glShaderSource(vertexShaderID, 1, &vertexCode, 0);
-    const GLchar* fragmentCode = LoadShaderCode(adapter[1], "res/shaders/FragmentShader.glsl");
-    glShaderSource(fragmentShaderID, 1, &fragmentCode, 0);
+   
+    ShaderVertFragSource shaderSource;
+    LoadShaderCode(&shaderSource, "res/shaders/Combo.glsl", SCGL_NONE);
+
+    printf("VERT:\n%s\n", shaderSource.vertexSource);
+    const GLchar* vertStr = shaderSource.vertexSource;
+    const GLchar* vertShader = vertStr;
+    glShaderSource(vertexShaderID, 1, &vertShader, 0);
+
+    printf("FRAG:\n%s\n", shaderSource.fragmentSource);
+    const GLchar* fragStr = shaderSource.fragmentSource;
+    const GLchar* fragShader = fragStr;
+    glShaderSource(fragmentShaderID, 1, &fragShader, 0);
 
     glCompileShader(vertexShaderID);
     glCompileShader(fragmentShaderID);
