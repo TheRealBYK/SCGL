@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
+#include <stdlib.h>
 #include "glad/gl.h"
 #include <GLFW/glfw3.h>
 #include "Shapes.h"
@@ -16,15 +16,14 @@ typedef struct {
     char fragmentSource[1024];
 }ShaderVertFragSource;
 
-void sendDataToOpenGL();
+void SendDataToOpenGL();
 ShaderVertFragSource* LoadShaderCode(ShaderVertFragSource* shaderStrBuf, const char* fileName, ShaderType type);
-void installShaders();
-bool checkStatus(GLuint objectID, PFNGLGETSHADERIVPROC objectPropertyGetterFunc, PFNGLGETSHADERINFOLOGPROC getInfoLogFunc, GLenum statusType);
-bool checkShaderStatus(GLuint shaderID);
-bool checkProgramStatus(GLuint progID);
-GLuint programID;
+GLuint CompileShader(GLuint type, const char* source);
+GLuint CreateShader(const char* vertexShader, const char* fragmentShader);
+void InstallShaders();
+void InitializeGL();
 
-void initializeGL();
+GLuint programID;
 
 int main(void)
 {
@@ -45,7 +44,7 @@ int main(void)
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
-    initializeGL();
+    InitializeGL();
 
     GLsizei width, height;
     
@@ -75,7 +74,7 @@ int main(void)
     return 0;
 }
 
-void sendDataToOpenGL()
+void SendDataToOpenGL()
 {
     Vertex verts[3];
     createTriangle(verts);
@@ -90,7 +89,7 @@ void sendDataToOpenGL()
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (char *)(sizeof(float) * 3));
 
-    GLushort indices[] = {0,1,2,};
+    GLushort indices[] = {0,  1,  2,};
 
     GLuint indexID;
     glGenBuffers(1, &indexID);
@@ -155,13 +154,11 @@ ShaderVertFragSource* LoadShaderCode(ShaderVertFragSource* shaderStrBuf, const c
 	{
 	    strncpy(shaderStrBuf->vertexSource, shaderBuf, strlen(shaderBuf));
 	    strncpy(shaderStrBuf->fragmentSource, " \0", sizeof(" \0"));
-	    // shaderStrBuf->vertexSource[strlen(shaderStrBuf->vertexSource) - 1] = '\0';
 	}
 	else if (type == SCGL_FRAGMENT)
 	{
 	    strncpy(shaderStrBuf->fragmentSource, shaderBuf, sizeof(shaderBuf));
 	    strncpy(shaderStrBuf->vertexSource, " \0", sizeof(" \0"));
-	    // shaderStrBuf->fragmentSource[strlen(shaderStrBuf->fragmentSource) - 1] = '\0';
 	}
     }
     fclose(pFile);
@@ -169,87 +166,76 @@ ShaderVertFragSource* LoadShaderCode(ShaderVertFragSource* shaderStrBuf, const c
     return shaderStrBuf;
 }
 
-void installShaders()
+GLuint CompileShader(GLuint type, const char* source)
+{
+    GLuint id = glCreateShader(type); 
+    glShaderSource(id, 1, &source, NULL);
+    glCompileShader(id);
+
+    int status;
+    glGetShaderiv(id, GL_COMPILE_STATUS, &status);
+    if (status == GL_FALSE)
+    {
+	int length;
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+        char* message = (char*)alloca(length * sizeof(char));
+        glGetShaderInfoLog(id, length, &length, message);
+
+        printf("Failed to compile %s shader", ((type == GL_VERTEX_SHADER) ? "vertex": "fragment"));
+        printf("%s\n", message);
+
+        glDeleteShader(id);
+        return 0;
+    }
+
+    return id;
+}
+GLuint CreateShader(const char* vertexShader, const char* fragmentShader)
+{
+    GLuint program = glCreateProgram();
+    GLuint vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
+    GLuint fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+
+    glAttachShader(program, vs);
+    glAttachShader(program, fs);
+    glLinkProgram(program);
+    glValidateProgram(program);
+
+    printf("Deleting vertex shader.\n");
+    glDeleteShader(vs);
+    printf("Deleting fragment shader.\n");
+    glDeleteShader(fs);
+
+    return program;
+}
+
+void InstallShaders()
 {
     GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
-    GLchar adapter[2][1024] = {{0}};
-   
     ShaderVertFragSource shaderSource;
     LoadShaderCode(&shaderSource, "res/shaders/Combo.glsl", SCGL_NONE);
 
-    printf("VERT:\n%s\n", shaderSource.vertexSource);
     const GLchar* vertStr = shaderSource.vertexSource;
-    const GLchar* vertShader = vertStr;
-    glShaderSource(vertexShaderID, 1, &vertShader, 0);
-
-    printf("FRAG:\n%s\n", shaderSource.fragmentSource);
     const GLchar* fragStr = shaderSource.fragmentSource;
-    const GLchar* fragShader = fragStr;
-    glShaderSource(fragmentShaderID, 1, &fragShader, 0);
 
-    glCompileShader(vertexShaderID);
-    glCompileShader(fragmentShaderID);
+    printf("VERT:\n%s\n", shaderSource.vertexSource);
+    printf("FRAG:\n%s\n", shaderSource.fragmentSource);
 
-    if (!checkShaderStatus(vertexShaderID) || !checkShaderStatus(fragmentShaderID)) return;
 
-    programID = glCreateProgram();
-    glAttachShader(programID, vertexShaderID);
-    glAttachShader(programID, fragmentShaderID);
-    glLinkProgram(programID);
-
-    if (!checkProgramStatus(programID)) return;
-
-    printf("Deleting vertex shader.\n");
-    glDeleteShader(vertexShaderID);
-    printf("Deleting fragment shader.\n");
-    glDeleteShader(fragmentShaderID);
+    programID = CreateShader(vertStr, fragStr);
 
     glUseProgram(programID);
 }
 
-bool checkStatus(GLuint objectID, PFNGLGETSHADERIVPROC objectPropertyGetterFunc, PFNGLGETSHADERINFOLOGPROC getInfoLogFunc, GLenum statusType)
-{
-    GLint status;
-    objectPropertyGetterFunc(objectID, statusType, &status);
-    
-    if (status != GL_TRUE)
-    {
-	GLint infoLogLength;
-	objectPropertyGetterFunc(objectID, GL_INFO_LOG_LENGTH, &infoLogLength);
-	GLchar buffer[infoLogLength];
-
-	memset(buffer, 0, infoLogLength);
-
-	GLsizei bufferSize;
-	getInfoLogFunc(objectID, infoLogLength, &bufferSize, buffer);
-
-	printf("OpenGL: %s\n", buffer);
-
-	return false;
-    }
-    return true;
-}
-
-bool checkShaderStatus(GLuint shaderID)
-{
-    return checkStatus(shaderID, glGetShaderiv, glGetShaderInfoLog, GL_COMPILE_STATUS);
-}
-
-bool checkProgramStatus(GLuint progID)
-{
-    return checkStatus(progID, glGetProgramiv, glGetProgramInfoLog, GL_LINK_STATUS);
-}
-
-void initializeGL()
+void InitializeGL()
 {
     int version = gladLoadGL(glfwGetProcAddress);
     printf("GLAD: OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
     printf("%s\n", glGetString(GL_VERSION));
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // glEnable(GL_DEPTH_TEST);
-    sendDataToOpenGL();
-    installShaders();
+   
+    glClear(GL_COLOR_BUFFER_BIT);
+    SendDataToOpenGL();
+    InstallShaders();
 }
