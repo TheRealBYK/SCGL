@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "glad/gl.h"
+#include <glad/gl.h>
+#include <cglm/cglm.h>
+#include <cglm/struct.h>
 #include <GLFW/glfw3.h>
 #include "Shapes.h"
+
+#define GET_WINDOW_SIZE(win, w, h) glfwGetFramebufferSize(win, &w, &h)
 
 typedef enum {
     SCGL_NONE = -1,
@@ -22,6 +26,7 @@ GLuint CompileShader(GLuint type, const char* source);
 GLuint CreateShader(const char* vertexShader, const char* fragmentShader);
 void InstallShaders();
 void InitializeGL();
+void PaintGL(GLFWwindow* win);
 
 GLuint programID;
 
@@ -46,16 +51,11 @@ int main(void)
 
     InitializeGL();
 
-    GLsizei width, height;
-    
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
-	glfwGetFramebufferSize(window, &width, &height);
-	glViewport(0, 0, width, height);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 0);
+	PaintGL(window);
     
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -76,8 +76,8 @@ int main(void)
 
 void SendDataToOpenGL()
 {
-    Vertex verts[3];
-    createTriangle(verts);
+    Vertex verts[24];
+    createCube(verts);
 
     GLuint vertexID;
     glGenBuffers(1, &vertexID);
@@ -89,7 +89,14 @@ void SendDataToOpenGL()
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (char *)(sizeof(float) * 3));
 
-    GLushort indices[] = {0,  1,  2,};
+    GLushort indices[] = {
+	    0,  1,  2, 0,  2,  3, // Top
+            4,  5,  6,  4,  6,  7, // Front
+            8,  9, 10,  8, 10, 11, // Right
+           12, 13, 14, 12, 14, 15, // Left
+           16, 17, 18, 16, 18, 19, // Back
+           20, 22, 21, 20, 23, 22,
+    };
 
     GLuint indexID;
     glGenBuffers(1, &indexID);
@@ -234,8 +241,35 @@ void InitializeGL()
     int version = gladLoadGL(glfwGetProcAddress);
     printf("GLAD: OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
     printf("%s\n", glGetString(GL_VERSION));
-   
-    glClear(GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_DEPTH_TEST);
     SendDataToOpenGL();
     InstallShaders();
+
+}
+
+void PaintGL(GLFWwindow* win)
+{
+    int width, height;
+    GET_WINDOW_SIZE(win, width, height);
+    
+    mat4 projectionMat;
+    glm_perspective(glm_rad(60.0f), ((float)width) / (float)height, 0.1f, 10.0f, projectionMat);
+    mat4 rotationMat;
+    vec3 rotationAxis = {1.0f, 0.0f, 0.0f};
+    vec3 rotationPivot = {0.0f, 0.0f, -3.0f};
+    glm_mat4_identity(rotationMat);
+    glm_rotate_at(rotationMat, rotationPivot,glm_rad(54.0f), rotationAxis);
+    mat4 translationMat;
+    vec3 translationVec = {0.0f, 0.0f, -3.0f};
+    glm_translate_to(rotationMat, translationVec, translationMat);
+    mat4 fullMatrix;
+    glm_mat4_mul(projectionMat, translationMat, fullMatrix);
+
+    GLint fullMatrixUniformLocation = glGetUniformLocation(programID, "fullMatrix");
+    glUniformMatrix4fv(fullMatrixUniformLocation, 1, GL_FALSE, (const GLfloat *)fullMatrix);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, width, height);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
 }

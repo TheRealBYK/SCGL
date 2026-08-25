@@ -6,8 +6,11 @@ layout(location=1) in vec4 vertexColor;
 
 out vec4 theColor;
 
+uniform mat4 fullMatrix;
+
 void main(){
-    gl_Position = vec4(position, 1.0f);
+    vec4 v = vec4(position, 1.0f);
+    gl_Position = fullMatrix * v;
     theColor = vec4(vertexColor);
 }
 

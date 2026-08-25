@@ -1,16 +1,32 @@
 cmake_minimum_required(VERSION 4.4)
 project("SCGL" C CXX)
 
-include_directories(${CMAKE_SOURCE_DIR}/glad/include)
-file(GLOB BUTTERFLIES_SOURCES_C ${CMAKE_SOURCE_DIR} *.c glad/src/gl.c)
+include_directories(${CMAKE_SOURCE_DIR}/dependencies/include)
+file(GLOB BUTTERFLIES_SOURCES_C ${CMAKE_SOURCE_DIR} *.c dependencies/src/gl.c)
 
 if (WIN32)
-    include(FetchContent)
-    FetchContent_Declare(
-	GLFW
-	URL "https://github.com/glfw/glfw/releases/download/3.5.1/glfw-3.5.1.bin.WIN64.zip"
-    )
-    FetchContent_MakeAvailable(GLFW)
+    message(STATUS "Configuring for Windows.")
+    if(EXISTS "${CMAKE_SOURCE_DIR}/dependencies/lib/GLFW")
+	message(STATUS "GLFW found!")
+    else()
+	set(ZIP_URL "https://github.com/glfw/glfw/releases/download/3.5.1/glfw-3.5.1.bin.WIN64.zip")
+	set(TARGET_DIR "${CMAKE_SOURCE_DIR}/tmp/")
+	set(ZIP_FILE_PATH "${TARGET_DIR}/GLFW.zip")
+	
+	file(MAKE_DIRECTORY "${TARGET_DIR}")
+	message(STATUS "Downloading ${ZIP_URL}...")
+	file(DOWNLOAD "${ZIP_URL}" "${ZIP_FILE_PATH}" SHOW_PROGRESS STATUS download_status TIMEOOUT 60)
+	list(GET download_status 0 error_code)
+	list(GET download_status 1 error_message)
+
+	if(NOT error_code EQUAL 0)
+	    message(FATAL_ERROR "Download failed: ${error_message}")
+	else()
+	    message(STATUS "ZIP archive saved successfully to: ${ZIP_FILE_PATH}")
+	endif()
+
+	file(ARCHIVE_EXTRACT INPUT "${ZIP_FILE_PATH}" DESTINATION "${TARGET_DIR}")
+    endif()
 endif()
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/src")
