@@ -14,6 +14,7 @@ if (WIN32)
 	set(ZIP_FILE_PATH "${TARGET_DIR}/GLFW.zip")
 	
 	file(MAKE_DIRECTORY "${TARGET_DIR}")
+	file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/dependencies/lib")
 	message(STATUS "Downloading ${ZIP_URL}...")
 	file(DOWNLOAD "${ZIP_URL}" "${ZIP_FILE_PATH}" SHOW_PROGRESS STATUS download_status TIMEOOUT 60)
 	list(GET download_status 0 error_code)
@@ -26,6 +27,9 @@ if (WIN32)
 	endif()
 
 	file(ARCHIVE_EXTRACT INPUT "${ZIP_FILE_PATH}" DESTINATION "${TARGET_DIR}")
+	file(COPY "${CMAKE_SOURCE_DIR}/tmp/glfw-3.5.1.bin.WIN64/include/" DESTINATION "${CMAKE_SOURCE_DIR}/dependencies/include/")
+	file(COPY "${CMAKE_SOURCE_DIR}/tmp/glfw-3.5.1.bin.WIN64/lib-vc2022/" DESTINATION "${CMAKE_SOURCE_DIR}/dependencies/lib/")
+	file(REMOVE_RECURSE "${CMAKE_SOURCE_DIR}/tmp")
     endif()
 endif()
 
