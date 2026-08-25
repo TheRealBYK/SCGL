@@ -1,7 +1,7 @@
 # SCGL - (Simple C GL) A simple OpenGL window template made with GLFW and GLAD.
 
 ## Windows.
-On Windows, modify every `unixlike-gcc-debug` in [CMakeUserPrests.json]("https://github.com/TheRealBYK/SCGL/blob/master/CMakeUserPresets.json") to `win-x64 release`, like so:
+On Windows, modify every `unixlike-gcc-debug` in [CMakeUserPresets.json](https://github.com/TheRealBYK/SCGL/blob/master/CMakeUserPresets.json) to `win-x64 release`, like so:
 ```json
     "configurePresets": [
         {
