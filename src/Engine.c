@@ -139,7 +139,7 @@ ShaderVertFragSource* LoadShaderCode(ShaderVertFragSource* shaderStrBuf, const c
     if (type == SCGL_NONE)
     {
 	char shaderBuffers[2][1024] = {{0}};
-	ShaderType sType;
+	ShaderType sType = type;
 	while (fgets(buffer, sizeof(buffer), pFile) != NULL) {
 	    if (strncmp(buffer, "#shader", (size_t)7) == 0)
 	    {
