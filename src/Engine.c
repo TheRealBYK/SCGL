@@ -18,6 +18,7 @@
 #include <cglm/struct.h>
 #include <GLFW/glfw3.h>
 #include "Shapes.h"
+#include "Camera.h"
 
 #define GET_WINDOW_SIZE(win, w, h) glfwGetFramebufferSize(win, &w, &h)
 
@@ -39,6 +40,7 @@ GLuint CreateShader(const char* vertexShader, const char* fragmentShader);
 void InstallShaders();
 void InitializeGL();
 void PaintGL(GLFWwindow* win);
+void MouseMoveEvent(GLFWwindow* win, double xpos, double ypos);
 
 GLuint programID;
 
@@ -63,10 +65,16 @@ int main(void)
 
     InitializeGL();
 
+    vec2 mousePosition;
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
+	double mousePositionX, mousePositionY;
+	glfwGetCursorPos(window, &mousePositionX, &mousePositionY);
+	vec2 mousePosUpdate = {(float)mousePositionX, (float)mousePositionY};
+	MouseUpdate(mousePosUpdate);
 	PaintGL(window);
     
         /* Swap front and back buffers */
@@ -271,12 +279,16 @@ void PaintGL(GLFWwindow* win)
     vec3 rotationAxis = {1.0f, 0.0f, 0.0f};
     vec3 rotationPivot = {0.0f, 0.0f, -3.0f};
     glm_mat4_identity(rotationMat);
-    glm_rotate_at(rotationMat, rotationPivot,glm_rad(54.0f), rotationAxis);
+    glm_rotate_at(rotationMat, rotationPivot, glm_rad(54.0f), rotationAxis);
     mat4 translationMat;
     vec3 translationVec = {0.0f, 0.0f, -3.0f};
     glm_translate_to(rotationMat, translationVec, translationMat);
+    mat4 worldToViewMatrix;
+    mat4 intermediateMatrix;
+    GetWorldToViewMatrix(worldToViewMatrix);
+    glm_mat4_mul(worldToViewMatrix, translationMat, intermediateMatrix);
     mat4 fullMatrix;
-    glm_mat4_mul(projectionMat, translationMat, fullMatrix);
+    glm_mat4_mul(projectionMat, intermediateMatrix, fullMatrix);
 
     GLint fullMatrixUniformLocation = glGetUniformLocation(programID, "fullMatrix");
     glUniformMatrix4fv(fullMatrixUniformLocation, 1, GL_FALSE, (const GLfloat *)fullMatrix);
@@ -284,4 +296,9 @@ void PaintGL(GLFWwindow* win)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, width, height);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
+}
+
+void MouseMoveEvent(GLFWwindow* win, double xpos, double ypos)
+{
+    glfwGetCursorPos(win, &xpos, &ypos);
 }
