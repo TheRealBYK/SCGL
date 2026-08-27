@@ -70,6 +70,30 @@ int main(void)
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
+	if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+	    MoveForeward();
+	}
+	else if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+	    MoveBackward();
+	}
+	else if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+	    StrafeLeft();
+	}
+	else if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+	    StrafeRight();
+	}
+	else if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+	{
+	    MoveUp();
+	}
+	else if(glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+	{
+	    MoveDown();
+	}
         /* Render here */
 	double mousePositionX, mousePositionY;
 	glfwGetCursorPos(window, &mousePositionX, &mousePositionY);
@@ -296,9 +320,4 @@ void PaintGL(GLFWwindow* win)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, width, height);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
-}
-
-void MouseMoveEvent(GLFWwindow* win, double xpos, double ypos)
-{
-    glfwGetCursorPos(win, &xpos, &ypos);
 }

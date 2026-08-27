@@ -57,3 +57,45 @@ void GetWorldToViewMatrix(mat4 worldToViewMatrix)
     glm_vec3_add(position, viewDirection, posViewDirVec);
     glm_lookat(position, posViewDirVec, UP, worldToViewMatrix);
 }
+
+void MoveForeward()
+{
+    vec3 step;
+    glm_vec3_scale(viewDirection, MOVEMENT_SPEED, step);
+    glm_vec3_add(position, step, position);
+}
+
+void MoveBackward()
+{
+    vec3 step;
+    glm_vec3_scale(viewDirection, (-MOVEMENT_SPEED), step);
+    glm_vec3_add(position, step, position);
+}
+
+void StrafeLeft()
+{
+    vec3 step;
+    glm_vec3_scale(strafeDirection, (-MOVEMENT_SPEED), step);
+    glm_vec3_add(position, step, position);
+}
+
+void StrafeRight()
+{
+    vec3 step;
+    glm_vec3_scale(strafeDirection, MOVEMENT_SPEED, step);
+    glm_vec3_add(position, step, position);
+}
+
+void MoveUp()
+{
+    vec3 step;
+    glm_vec3_scale(UP, MOVEMENT_SPEED, step);
+    glm_vec3_add(position, step, position);
+}
+
+void MoveDown()
+{
+    vec3 step;
+    glm_vec3_scale(UP, (-MOVEMENT_SPEED), step);
+    glm_vec3_add(position, step, position);
+}
