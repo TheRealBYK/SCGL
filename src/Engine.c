@@ -19,6 +19,7 @@
 #include <GLFW/glfw3.h>
 #include "Shapes.h"
 #include "Camera.h"
+#include "Abstractions.h"
 
 #define GET_WINDOW_SIZE(win, w, h) glfwGetFramebufferSize(win, &w, &h)
 
@@ -43,6 +44,7 @@ void PaintGL(GLFWwindow* win);
 void MouseMoveEvent(GLFWwindow* win, double xpos, double ypos);
 
 GLuint programID;
+GLuint vaoID;
 
 int main(void)
 {
@@ -52,8 +54,12 @@ int main(void)
     if (!glfwInit())
         return -1;
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(640, 480, "SCGL", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -62,6 +68,8 @@ int main(void)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+    
+    glfwSwapInterval(1);
 
     InitializeGL();
 
@@ -124,9 +132,7 @@ void SendDataToOpenGL()
     createCube(verts);
 
     GLuint vertexID;
-    glGenBuffers(1, &vertexID);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexID);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+    VertexBufferCreate(&vertexID, verts, sizeof(verts));
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
@@ -143,9 +149,7 @@ void SendDataToOpenGL()
     };
 
     GLuint indexID;
-    glGenBuffers(1, &indexID);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexID);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    IndexBufferCreate(&indexID, indices, sizeof(indices) / sizeof(GLushort));
 }
 
 ShaderVertFragSource* LoadShaderCode(ShaderVertFragSource* shaderStrBuf, const char* fileName, ShaderType type)
@@ -287,9 +291,10 @@ void InitializeGL()
     printf("%s\n", glGetString(GL_VERSION));
 
     glEnable(GL_DEPTH_TEST);
+    glGenVertexArrays(1, &vaoID);
+    glBindVertexArray(vaoID);
     SendDataToOpenGL();
     InstallShaders();
-
 }
 
 void PaintGL(GLFWwindow* win)
@@ -316,6 +321,9 @@ void PaintGL(GLFWwindow* win)
 
     GLint fullMatrixUniformLocation = glGetUniformLocation(programID, "fullMatrix");
     glUniformMatrix4fv(fullMatrixUniformLocation, 1, GL_FALSE, (const GLfloat *)fullMatrix);
+
+    glBindVertexArray(vaoID);
+    // IndexBufferBind();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, width, height);
