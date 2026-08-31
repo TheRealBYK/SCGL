@@ -135,10 +135,8 @@ void SendDataToOpenGL()
     GLuint vertexID;
     VertexBufferCreate(&vertexID, shape.vertices, sizeof(Vertex) * shape.numVertices);
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (char *)(sizeof(float) * 3));
+    VertexAttribData(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+    VertexAttribData(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (char *)(sizeof(float) * 3));
 
     GLuint indexID;
     IndexBufferCreate(&indexID, shape.indices, shape.numIndices * sizeof(unsigned short));

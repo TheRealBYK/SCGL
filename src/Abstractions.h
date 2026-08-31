@@ -13,6 +13,7 @@
 #pragma once
 #include <glad/gl.h>
 #include <cglm/cglm.h>
+#include <stdbool.h>
 
 void VertexBufferBind(GLuint bufferID)
 {
@@ -34,6 +35,12 @@ void VertexBufferCreate(GLuint* bufferID ,const void* data, GLuint size)
 void VertexBufferCleanup(GLuint bufferID)
 {
     glDeleteBuffers(1, &bufferID);
+}
+
+void VertexAttribData(unsigned int index, unsigned int elementCount, GLenum type, bool normalize, unsigned int elementSize, const void* offset)
+{
+    glEnableVertexAttribArray(index);
+    glVertexAttribPointer(index, elementCount, type, normalize, elementSize, offset);
 }
 
 void IndexBufferBind(GLuint bufferID)
