@@ -45,6 +45,7 @@ void MouseMoveEvent(GLFWwindow* win, double xpos, double ypos);
 
 GLuint programID;
 GLuint vaoID;
+GLuint numIndices;
 
 int main(void)
 {
@@ -128,28 +129,27 @@ int main(void)
 
 void SendDataToOpenGL()
 {
-    Vertex verts[24];
-    createCube(verts);
+    ShapeData shape;
+    CreateCube(&shape);
 
     GLuint vertexID;
-    VertexBufferCreate(&vertexID, verts, sizeof(verts));
+    VertexBufferCreate(&vertexID, shape.vertices, sizeof(Vertex) * shape.numVertices);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (char *)(sizeof(float) * 3));
 
-    GLushort indices[] = {
-	    0,  1,  2, 0,  2,  3, // Top
-            4,  5,  6,  4,  6,  7, // Front
-            8,  9, 10,  8, 10, 11, // Right
-           12, 13, 14, 12, 14, 15, // Left
-           16, 17, 18, 16, 18, 19, // Back
-           20, 22, 21, 20, 23, 22,
-    };
-
     GLuint indexID;
-    IndexBufferCreate(&indexID, indices, sizeof(indices) / sizeof(GLushort));
+    IndexBufferCreate(&indexID, shape.indices, shape.numIndices * sizeof(unsigned short));
+
+    numIndices = shape.numIndices;
+    printf("Indices: %d\n", numIndices);
+
+    free(shape.vertices);
+    shape.vertices = NULL;
+    free(shape.indices);
+    shape.indices = NULL;
 }
 
 ShaderVertFragSource* LoadShaderCode(ShaderVertFragSource* shaderStrBuf, const char* fileName, ShaderType type)
@@ -305,13 +305,9 @@ void PaintGL(GLFWwindow* win)
     mat4 projectionMat;
     glm_perspective(glm_rad(60.0f), ((float)width) / (float)height, 0.1f, 10.0f, projectionMat);
     mat4 rotationMat;
-    vec3 rotationAxis = {1.0f, 0.0f, 0.0f};
-    vec3 rotationPivot = {0.0f, 0.0f, -3.0f};
-    glm_mat4_identity(rotationMat);
-    glm_rotate_at(rotationMat, rotationPivot, glm_rad(54.0f), rotationAxis);
+    cglm_rotate((mat4){{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}, (vec3){0.0f, 1.0f, 0.0f}, (vec3){0.0f, 0.0f, -3.0f}, 180.0f, rotationMat);
     mat4 translationMat;
-    vec3 translationVec = {0.0f, 0.0f, -3.0f};
-    glm_translate_to(rotationMat, translationVec, translationMat);
+    glm_translate_to(rotationMat, (vec3){0.0f, 0.0f, -3.0f}, translationMat);
     mat4 worldToViewMatrix;
     mat4 intermediateMatrix;
     GetWorldToViewMatrix(worldToViewMatrix);
@@ -327,5 +323,5 @@ void PaintGL(GLFWwindow* win)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, width, height);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
+    glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, 0);
 }

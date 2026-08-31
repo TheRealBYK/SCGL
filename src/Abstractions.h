@@ -12,6 +12,7 @@
 
 #pragma once
 #include <glad/gl.h>
+#include <cglm/cglm.h>
 
 void VertexBufferBind(GLuint bufferID)
 {
@@ -55,4 +56,10 @@ void IndexBufferCreate(GLuint* bufferID ,const unsigned short* data, GLuint coun
 void IndexBufferCleanup(GLuint bufferID)
 {
     glDeleteBuffers(1, &bufferID);
+}
+
+void cglm_rotate(mat4 matrixRotationTrnaslation, vec3 rotationAxis, vec3 rotationPivot, float angles, mat4 outputMatrix)
+{
+    glm_rotate_at(matrixRotationTrnaslation, rotationPivot, glm_rad(angles), rotationAxis);
+    glm_mat4_copy(matrixRotationTrnaslation, outputMatrix);
 }
