@@ -12,19 +12,7 @@
 
 #pragma once
 
-typedef struct
-{
-    float x, y, z;
-    float r, g, b, a;
-}Vertex;
-
-typedef struct
-{
-    Vertex* vertices;
-    int numVertices;
-    unsigned short* indices;
-    int numIndices;
-}ShapeData;
+#define NUM_ARAY_ELEMENTS(x) sizeof(x) / sizeof(*x)
 
 int ArrayAllocation(int vertexCount, int indexCount, ShapeData* data)
 {
@@ -46,19 +34,63 @@ int ArrayAllocation(int vertexCount, int indexCount, ShapeData* data)
 void CreateTriangle(ShapeData* inData)
 {
     Vertex verts[] = {
-	{+0.0f, +0.75f, -1.0f,
+	{+0.0f, +0.75f, -1.0f,		// 0
 	+0.0f, +1.0f, +0.0f, +1.0f},
-	{+0.75f, -0.75f, -1.0f,
+	{+0.75f, -0.75f, -1.0f,		// 1
 	+1.0f, +0.0f, +0.0f,+1.0f},	
-	{-0.75f, -0.75f, -1.0f,
+	{-0.75f, -0.75f, -1.0f,		// 2
 	+0.0f, +0.0f, +1.0f, +1.0f}
     };
 
     unsigned short indices[] = {0,  1,  2};
 
 
-    inData->numVertices = sizeof(verts) / sizeof(Vertex);
-    inData->numIndices = sizeof(indices) / sizeof(unsigned short);
+    inData->numVertices = NUM_ARAY_ELEMENTS(verts);
+    inData->numIndices = NUM_ARAY_ELEMENTS(indices);
+
+    ArrayAllocation(inData->numVertices, inData->numIndices, inData);
+
+    memcpy(inData->vertices, verts, sizeof(verts));
+    memcpy(inData->indices, indices, sizeof(indices));
+}
+
+void CreateTetrahedron(ShapeData* inData)
+{
+    Vertex verts[] = {
+	{+0.75f, -0.75f, -1.0f,		// 0
+	+1.0f, +0.0f, +0.0f,+1.0f},	
+	{-0.75f, -0.75f, -0.5f,		// 1
+	+0.0f, +0.0f, +1.0f, +1.0f},
+	{+0.25f, +0.25f, +0.25f,		// 2
+	+0.0f, +1.0f, +0.0f, +1.0f},
+
+	{-0.25f, -0.5f, +0.25f,	// 3
+	+0.0f, +0.0f, +1.0f, +1.0f},
+	{+0.25f, -0.5f, +0.25f,	// 4
+	+0.0f, +0.0f, +1.0f,+1.0f},	
+	{+0.0f, +0.25f, +0.125f,// 5
+	+1.0f, +1.0f, +1.0f, +1.0f},
+
+	{+0.25f, -0.5f, +0.25f,	// 6
+	+0.0f, +1.0f, +0.0f,+1.0f},	
+	{+0.0f, -0.5f, -0.25f,	// 7
+	+0.0f, +1.0f, +0.0f, +1.0f},
+	{+0.0f, +0.25f, +0.125f,// 8
+	+1.0f, +1.0f, +1.0f, +1.0f},
+
+	{+0.0f, -0.5f, -0.25f,	// 9
+	+1.0f, +0.0f, +0.0f, +1.0f},
+	{-0.25f, -0.5f, +0.25f,	// 10
+	+1.0f, +0.0f, +0.0f, +1.0f},
+	{+0.0f, +0.25f, +0.125f,// 11
+	+1.0f, +1.0f, +1.0f, +1.0f},
+    };
+
+    unsigned short indices[] = {0,1,2, 3,4,5, 6,7,8, 9,10,11};
+
+
+    inData->numVertices = NUM_ARAY_ELEMENTS(verts);
+    inData->numIndices = NUM_ARAY_ELEMENTS(indices);
 
     ArrayAllocation(inData->numVertices, inData->numIndices, inData);
 
@@ -134,8 +166,8 @@ void CreateCube(ShapeData* inData)
     };
 
 
-    inData->numVertices = sizeof(verts) / sizeof(Vertex);
-    inData->numIndices = sizeof(indices) / sizeof(unsigned short);
+    inData->numVertices = NUM_ARAY_ELEMENTS(verts);
+    inData->numIndices = NUM_ARAY_ELEMENTS(indices);
 
     ArrayAllocation(inData->numVertices, inData->numIndices, inData);
 
@@ -296,8 +328,8 @@ void CreateCar(ShapeData* inData)
     };
 
 
-    inData->numVertices = sizeof(verts) / sizeof(Vertex);
-    inData->numIndices = sizeof(indices) / sizeof(unsigned short);
+    inData->numVertices = NUM_ARAY_ELEMENTS(verts);
+    inData->numIndices = NUM_ARAY_ELEMENTS(indices);
 
     ArrayAllocation(inData->numVertices, inData->numIndices, inData);
 

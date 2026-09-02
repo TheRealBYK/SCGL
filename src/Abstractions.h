@@ -14,7 +14,9 @@
 #include <glad/gl.h>
 #include <cglm/cglm.h>
 #include <stdbool.h>
+#include "Structs.h"
 
+// OpenGL
 void VertexBufferBind(GLuint bufferID)
 {
     glBindBuffer(GL_ARRAY_BUFFER, bufferID);
@@ -65,8 +67,54 @@ void IndexBufferCleanup(GLuint bufferID)
     glDeleteBuffers(1, &bufferID);
 }
 
-void cglm_rotate(mat4 matrixRotationTrnaslation, vec3 rotationAxis, vec3 rotationPivot, float angles, mat4 outputMatrix)
+void UniformMat4f(const char* uniformName, GLuint progID, unsigned int count, GLboolean trnaspose, mat4 data)
+{  
+    GLint UniformLocation = glGetUniformLocation(progID, uniformName);
+    if (UniformLocation == -1)
+    {
+	printf("Uniform \"%s\" not found!", uniformName);
+	return;
+    }
+
+    glUniformMatrix4fv(UniformLocation, count, trnaspose, (const GLfloat *)data);
+}
+
+// CGLM
+
+mat4* Mat4Rotate(mat4 matrixRotationTrnaslation, vec3 rotationAxis, vec3 rotationPivot, float angles)
 {
     glm_rotate_at(matrixRotationTrnaslation, rotationPivot, glm_rad(angles), rotationAxis);
-    glm_mat4_copy(matrixRotationTrnaslation, outputMatrix);
+    return (mat4*)matrixRotationTrnaslation;
+}
+
+mat4* Mat4Translate(mat4 matrix, vec3 vector)
+{
+    glm_translate_to(matrix, vector, matrix);
+    return (mat4*)matrix;
+}
+
+mat4* Mat4Identify(mat4 matToInit)
+{
+    glm_mat4_identity(matToInit);
+}
+
+mat4* Mat4Mul(mat4 m2, mat4 m1)
+{ 
+    glm_mat4_mul(m2, m1, m2);
+    return (mat4*)m2;
+}
+
+void Mat4Copy(mat4 m1, mat4 m2)
+{
+    glm_mat4_copy(m1, m2);
+}
+
+void CameraInit(mat4 projMat)
+{ 
+    glm_perspective(glm_rad(60.0f), 1920.0f / 1080.0f, 0.1f, 10.f, projMat);
+}
+
+void CameraUpdate(Camera* cam, mat4 projMat)
+{
+    glm_perspective(glm_rad(cam->fov), ((float)cam->width) / (float)cam->height, cam->nearPlane, cam->farPlane, projMat);
 }

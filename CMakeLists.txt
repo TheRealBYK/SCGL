@@ -15,6 +15,7 @@ project("SCGL" C CXX)
 
 include_directories(${CMAKE_SOURCE_DIR}/dependencies/include)
 file(GLOB BUTTERFLIES_SOURCES_C ${CMAKE_SOURCE_DIR} *.c dependencies/src/gl.c)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (WIN32)
     message(STATUS "Configuring for Windows.")

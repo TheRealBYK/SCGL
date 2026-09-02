@@ -14,6 +14,7 @@
 #include <cglm/cglm.h>
 #include <cglm/call.h>
 #include <cglm/struct.h>
+#include "Abstractions.h"
 
 const float MOVEMENT_SPEED = 0.1f;
 
@@ -37,16 +38,13 @@ void MouseUpdate(vec2 newMousePosition)
     }
     const float ROTATIONAL_SPEED = 0.25f;
     glm_vec3_cross(viewDirection, UP, strafeDirection);
-    mat4 rot1;
-    mat4 rot2;
-    glm_mat4_identity(rot1);
-    glm_mat4_identity(rot2);
-    mat4 rotator;
+    mat4 rot1 = GLM_MAT4_IDENTITY_INIT;
+    mat4 rot2 = GLM_MAT4_IDENTITY_INIT;
     mat3 collapsedRotator;
-    glm_rotate_at(rot1, camPosition, glm_rad(-mouseDelta[1]) * ROTATIONAL_SPEED, strafeDirection);
-    glm_rotate_at(rot2, camPosition, glm_rad(-mouseDelta[0]) * ROTATIONAL_SPEED, UP);
-    glm_mat4_mul(rot1, rot2, rotator);
-    glm_mat4_pick3(rotator, collapsedRotator);
+    Mat4Rotate(rot1, strafeDirection, camPosition, (-mouseDelta[1]) * ROTATIONAL_SPEED);
+    Mat4Rotate(rot2, UP, camPosition, (-mouseDelta[0]) * ROTATIONAL_SPEED);
+    mat4* rotator = Mat4Mul(rot1, rot2);
+    glm_mat4_pick3(*rotator, collapsedRotator);
     glm_mat3_mulv(collapsedRotator, viewDirection, viewDirection);
     glm_vec2_copy(newMousePosition, oldMousePosition);
 }
