@@ -17,31 +17,27 @@
 
 #pragma once
 
-// Shape Structs.
-typedef struct
-{
-    float x, y, z;
-    float r, g, b, a;
-}Vertex;
+#include "Camera.h"
+#include <GLFW/glfw3.h>
 
-typedef struct
-{
-    Vertex* vertices;
-    int numVertices;
-    unsigned short* indices;
-    int numIndices;
-}ShapeData;
 
-// Camera Struct.
-typedef struct
+void HandleInput(GLFWwindow *win, double* posX, double* posY)
 {
-    float fov;
-    int width, height;
-    float nearPlane, farPlane;
-} Camera;
+    if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) {
+      MoveForeward();
+    } else if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) {
+      MoveBackward();
+    } else if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) {
+      StrafeLeft();
+    } else if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) {
+      StrafeRight();
+    } else if (glfwGetKey(win, GLFW_KEY_R) == GLFW_PRESS) {
+      MoveUp();
+    } else if (glfwGetKey(win, GLFW_KEY_F) == GLFW_PRESS) {
+      MoveDown();
+    }
 
-// Shader Struct.
-typedef struct {
-    char vertexSource[1024];
-    char fragmentSource[1024];
-} ShaderVertFragSource;
+    glfwGetCursorPos(win, posX, posY);
+    vec2 mousePosUpdate = {(float)*posX, (float)*posY};
+    MouseUpdate(mousePosUpdate);
+}

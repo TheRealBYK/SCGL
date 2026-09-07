@@ -2,11 +2,16 @@
 //
 // This file is part of SCGL.
 //
-// SCGL is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, under version 2 of the License.
+// SCGL is free software: you can redistribute it and/or modify it under the 
+// terms of the GNU General Public License as published by the Free Software 
+// Foundation, under version 2 of the License.
 //
-// SCGL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+// SCGL is distributed in the hope that it will be useful, but WITHOUT ANY 
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR 
+// A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License along with SCGL. If not, see <https://www.gnu.org/licenses/>.
+// You should have received a copy of the GNU General Public License along with 
+// SCGL. If not, see <https://www.gnu.org/licenses/>.
 //
 // Maintainer: BYK <bykdev@proton.me>
 
@@ -15,6 +20,8 @@
 #include <cglm/cglm.h>
 #include <stdbool.h>
 #include "Structs.h"
+
+#define GET_WINDOW_SIZE(win, w, h) glfwGetFramebufferSize(win, &w, &h)
 
 // OpenGL
 void VertexBufferBind(GLuint bufferID)
@@ -93,7 +100,7 @@ mat4* Mat4Translate(mat4 matrix, vec3 vector)
     return (mat4*)matrix;
 }
 
-mat4* Mat4Identify(mat4 matToInit)
+void Mat4Identify(mat4 matToInit)
 {
     glm_mat4_identity(matToInit);
 }

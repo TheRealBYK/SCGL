@@ -2,15 +2,25 @@
 //
 // This file is part of SCGL.
 //
-// SCGL is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, under version 2 of the License.
+// SCGL is free software: you can redistribute it and/or modify it under the 
+// terms of the GNU General Public License as published by the Free Software 
+// Foundation, under version 2 of the License.
 //
-// SCGL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+// SCGL is distributed in the hope that it will be useful, but WITHOUT ANY 
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR 
+// A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License along with SCGL. If not, see <https://www.gnu.org/licenses/>.
+// You should have received a copy of the GNU General Public License along with 
+// SCGL. If not, see <https://www.gnu.org/licenses/>.
 //
 // Maintainer: BYK <bykdev@proton.me>
 
 #pragma once
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "Structs.h"
 
 #define NUM_ARAY_ELEMENTS(x) sizeof(x) / sizeof(*x)
 
@@ -54,39 +64,48 @@ void CreateTriangle(ShapeData* inData)
     memcpy(inData->indices, indices, sizeof(indices));
 }
 
-void CreateTetrahedron(ShapeData* inData)
+void CreatePyramid(ShapeData* inData)
 {
     Vertex verts[] = {
-	{+0.75f, -0.75f, -1.0f,		// 0
-	+1.0f, +0.0f, +0.0f,+1.0f},	
-	{-0.75f, -0.75f, -0.5f,		// 1
-	+0.0f, +0.0f, +1.0f, +1.0f},
-	{+0.25f, +0.25f, +0.25f,		// 2
-	+0.0f, +1.0f, +0.0f, +1.0f},
+	{+0.5f, +0.0f, -0.5f,  // 0
+	 +0.5f, +0.5f, +0.5f, +1.0f},
+	{+0.5f, +0.0f, +0.5f,  // 1
+	 +0.5f, +0.5f, +0.5f, +1.0f},
+	{-0.5f, +0.0f, +0.5f,  // 2
+	 +0.5f, +0.5f, +0.5f, +1.0f},
+	{-0.5f, +0.0f, -0.5f,  // 3
+	 +0.5f, +0.5f, +0.5f, +1.0f},
 
-	{-0.25f, -0.5f, +0.25f,	// 3
-	+0.0f, +0.0f, +1.0f, +1.0f},
-	{+0.25f, -0.5f, +0.25f,	// 4
-	+0.0f, +0.0f, +1.0f,+1.0f},	
-	{+0.0f, +0.25f, +0.125f,// 5
-	+1.0f, +1.0f, +1.0f, +1.0f},
+	{+0.5f, +0.0f, -0.5f,  // 4
+	 +1.0f, +0.0f, +0.0f, 1.0f},
+	{-0.5f, +0.0f, -0.5f,  // 5
+	 +1.0f, +0.0f, +0.0f, 1.0f},
+	{+0.0f, +0.75f, +0.0f, // 6
+	 +1.0f, +0.0f, +0.0f, +1.0f},
+	
+	{-0.5f, +0.0f, -0.5f,  // 7
+	 +0.0f, +1.0f, +0.0f, 1.0f},	
+	{-0.5f, +0.0f, +0.5f,  // 8
+	 +0.0f, +1.0f, +0.0f, 1.0f},
+	{+0.0f, +0.75f, +0.0f, // 9
+	 +0.0f, +1.0f, +0.0f, +1.0f},
 
-	{+0.25f, -0.5f, +0.25f,	// 6
-	+0.0f, +1.0f, +0.0f,+1.0f},	
-	{+0.0f, -0.5f, -0.25f,	// 7
-	+0.0f, +1.0f, +0.0f, +1.0f},
-	{+0.0f, +0.25f, +0.125f,// 8
-	+1.0f, +1.0f, +1.0f, +1.0f},
+	{-0.5f, +0.0f, +0.5f,  // 10
+	 +0.0f, +0.0f, +1.0f, 1.0f},
+	{+0.5f, +0.0f, +0.5f,  // 11
+	 +0.0f, +0.0f, +1.0f, 1.0f},
+	{+0.0f, +0.75f, +0.0f, // 12
+	 +0.0f, +0.0f, +1.0f, +1.0f},
 
-	{+0.0f, -0.5f, -0.25f,	// 9
-	+1.0f, +0.0f, +0.0f, +1.0f},
-	{-0.25f, -0.5f, +0.25f,	// 10
-	+1.0f, +0.0f, +0.0f, +1.0f},
-	{+0.0f, +0.25f, +0.125f,// 11
-	+1.0f, +1.0f, +1.0f, +1.0f},
+	{+0.5f, +0.0f, +0.5f,  // 13
+	 +1.0f, +1.0f, +1.0f, 1.0f},
+	{+0.5f, +0.0f, -0.5f,  // 14
+	 +1.0f, +1.0f, +1.0f, 1.0f},
+	{+0.0f, +0.75f, +0.0f, // 15
+	 +1.0f, +1.0f, +1.0f, +1.0f},
     };
 
-    unsigned short indices[] = {0,1,2, 3,4,5, 6,7,8, 9,10,11};
+    unsigned short indices[] = {0,1,2, 0,2,3, 4,5,6, 7,8,9, 10,11,12, 13,14,15};
 
 
     inData->numVertices = NUM_ARAY_ELEMENTS(verts);
