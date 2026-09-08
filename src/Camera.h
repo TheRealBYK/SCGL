@@ -20,6 +20,7 @@
 #include <cglm/call.h>
 #include <cglm/struct.h>
 #include "Abstractions.h"
+#include "cglm/vec3.h"
 
 const float MOVEMENT_SPEED = 0.1f;
 
@@ -52,6 +53,7 @@ void MouseUpdate(vec2 newMousePosition)
     glm_mat4_pick3(*rotator, collapsedRotator);
     glm_mat3_mulv(collapsedRotator, viewDirection, viewDirection);
     glm_vec2_copy(newMousePosition, oldMousePosition);
+    printf("CAM: %f,  %f\n", newMousePosition[0], newMousePosition[1]);
 }
 
 void GetWorldToViewMatrix(mat4 worldToViewMatrix)

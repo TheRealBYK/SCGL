@@ -44,23 +44,27 @@ void RendererClear()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void RendererDraw(GLFWwindow *win, GLuint VAO, Camera* cam, mat4 projMat, GLuint progID, GLuint numIndices)
+void RendererDraw(GLFWwindow *win, GLuint VAO, Camera* cam, mat4 projMat, GLuint progID, GLuint numIndices, vec3 translationVector, vec3 rotAxis, float deg)
 {
     GET_WINDOW_SIZE(win, cam->width, cam->height);
 
     CameraUpdate(cam, projMat);
     mat4 VarMatrix = GLM_MAT4_IDENTITY_INIT;
-    mat4* rotationMat = Mat4Rotate(VarMatrix, (vec3){1.0f, 0.0f, 0.0f}, (vec3){0.0f, 0.0f, -3.0f}, 0.0f);
-    mat4* translationMat = Mat4Translate(*rotationMat, (vec3){0.0f, 0.0f, -3.0f});
+    mat4* rotationMat = Mat4Rotate(VarMatrix, rotAxis, translationVector, deg);
+    mat4* translationMat = Mat4Translate(*rotationMat, translationVector);
     mat4 worldToViewMatrix;
     GetWorldToViewMatrix(worldToViewMatrix);
     Mat4Copy(*Mat4Mul(worldToViewMatrix, *translationMat), VarMatrix);
     mat4* fullMatrix = Mat4Mul(projMat, VarMatrix);
 
+
+    glUseProgram(progID);
+    glBindVertexArray(VAO);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_SCISSOR_TEST);
+
     UniformMat4f("u_FullMatrix", progID, 1, GL_FALSE, *fullMatrix);
     
-    glBindVertexArray(VAO);
-
     RendererClear();
     glViewport(0, 0, cam->width, cam->height);
     glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, 0);
