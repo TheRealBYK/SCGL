@@ -33,6 +33,7 @@
 #define NK_GLFW_GL3_IMPLEMENTATION
 #include <nuklear/nuklear.h>
 #include <nuklear/nuklear_glfw_gl3.h>
+#include "nuklear/style.c"
 
 #define MAX_VERTEX_BUFFER 512 * 1024
 #define MAX_ELEMENT_BUFFER 128 * 1024
@@ -83,13 +84,9 @@ int main(void) {
 	fprintf(stderr, "Failed to initialize GLAD\n");
 	return -1;
     }
-    RendererInit(&vaoID, &programID, &numIndices, DRAW_PYRAMID);
+    RendererInit(&vaoID, &programID, &numIndices, DRAW_CAR);
 
     ctx = nk_glfw3_init(&glfw, window, NK_GLFW3_INSTALL_CALLBACKS);
-
-    printf("returned ctx: %p\n", (void *)ctx);
-    printf("&glfw.ctx:   %p\n", (void *)&glfw.ctx);
-    printf("ctx = %p\n", (void *)ctx);
 
     if (ctx == NULL) {
 	fprintf(stderr, "nk_glfw3_init() FAILED\n");
@@ -109,72 +106,99 @@ int main(void) {
     mat4 projectionMat;
     Mat4Identify(projectionMat);
 
-    vec3 translationVec = {0.0f, 0.0f, -3.0f};
-    vec3 rotationAxis = {1.0f, 0.0f, 0.0f};
+    float translationVec[3] = {0.0f, 0.0f, -3.0f};
+    float rotationAxis[3] = {1.0f, 0.0f, 0.0f};
     float AngleDegree = 54.0f;
 
-    double mousePositionX, mousePositionY;
+    set_style(ctx, THEME_BYK);
+    ctx->style.window.rounding = 10.0f;
+    ctx->style.button.rounding = 10.0f;
+    ctx->style.combo.rounding = 10.0f;
+    ctx->style.edit.rounding = 10.0f;
+    ctx->style.property.rounding = 3.75f;
+    ctx->style.property.inc_button.rounding = 3.75f;
+    ctx->style.property.dec_button.rounding = 3.75f;
+    ctx->style.property.hover = nk_style_item_color(nk_rgba(40, 66, 140, 255));
+    ctx->style.property.edit.hover = nk_style_item_color(nk_rgba(40, 66, 140, 255));
+    bool showMenu = false;
+    int wasMenuOpen = 0;
+    int buttonState = GLFW_RELEASE;
+
+    double mousePositionX = 0.0f;
+    double mousePositionY = 0.0f;
+    float nuklearPositionX = 0.0f;
+    float nuklearPositionY = 0.0f;
     /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window)) { 
+        /* Poll for and process events */
+        glfwPollEvents();
+	printf("MouseX: %.2f, MouseY: %.2f\n", mousePositionX, mousePositionY);
         /* Render here */
 	nk_glfw3_new_frame(&glfw);
 
-	if (!nk_window_is_any_hovered(ctx))
+	HandleInput(window, &mousePositionX, &mousePositionY, &showMenu, &buttonState, nk_window_is_any_hovered(ctx), &nuklearPositionX, &nuklearPositionY);
+	printf("Handle\n");
+	
+	
+	
+	if (showMenu && !wasMenuOpen)
 	{
-	    HandleInput(window, &mousePositionX, &mousePositionY);
-	    printf("Handle\n");
+	    nuklearPositionX = (float)mousePositionX;
+	    nuklearPositionY = (float)mousePositionY; 
+	    nk_window_set_position(ctx, "Shape Control.", nk_vec2(nuklearPositionX / 1.5, nuklearPositionY - 100));
 	}
-	else
-	{
-	    printf("unhandled\n");
-	}
+	wasMenuOpen = showMenu;
 
-	if (nk_begin(ctx,
-		     "Shape Control.",
-		     nk_rect(mousePositionX, mousePositionY, 500, 230),
-		     NK_WINDOW_BORDER |
-		     NK_WINDOW_MOVABLE |
-		     NK_WINDOW_SCALABLE |
-		     NK_WINDOW_MINIMIZABLE |
-		     NK_WINDOW_TITLE))
-	{
-	    nk_layout_row_dynamic(ctx, 100, 1);
-	    if (nk_group_begin(ctx, "row1", NK_WINDOW_BORDER))
+	if (showMenu)
+	{ 
+	    if (nk_begin(ctx,
+			 "Shape Control.",
+			 nk_rect(nuklearPositionX, nuklearPositionY, 350, 180),
+			 NK_WINDOW_BORDER |
+			 NK_WINDOW_MOVABLE |
+			 NK_WINDOW_SCALABLE |
+			 NK_WINDOW_MINIMIZABLE |
+			 NK_WINDOW_TITLE))
 	    {
-		nk_layout_row_dynamic(ctx, 10, 1);
-		nk_label(ctx, "Translation.", NK_TEXT_LEFT);
-		nk_layout_row_dynamic(ctx, 15, 3);
-		nk_property_float(ctx, "X:", -10.0, &translationVec[0], 10.0f, 1.0f, 1);
-		nk_property_float(ctx, "Y:", -10.0, &translationVec[1], 10.0f, 1.0f, 1);
-		nk_property_float(ctx, "Z:", -10.0, &translationVec[2], 10.0f, 1.0f, 1);
+		nk_layout_row_dynamic(ctx, 60, 1);
+		if (nk_group_begin(ctx, "row1", 0))
+		{
+		    nk_layout_row_dynamic(ctx, 7.5, 1);
+		    nk_label(ctx, "Translation.", NK_TEXT_LEFT);
+		    nk_layout_row_dynamic(ctx, 12.5, 3);
+		    nk_property_float(ctx, "TX:", -10.0, &translationVec[0], 10.0f, 0.1f, 0.25);
+		    nk_property_float(ctx, "TY:", -10.0, &translationVec[1], 10.0f, 0.1f, 0.25);
+		    nk_property_float(ctx, "TZ:", -10.0, &translationVec[2], 10.0f, 0.1f, 0.25);
 
+		}
+		nk_group_end(ctx);
+		if (nk_group_begin(ctx, "row2", NK_WINDOW_BORDER))
+		{
+		    nk_layout_row_dynamic(ctx, 7.5, 1);
+		    nk_label(ctx, "Rotation.", NK_TEXT_LEFT);
+		    nk_layout_row_dynamic(ctx, 12.5, 3);
+		    nk_property_float(ctx, "RX:", -1.0, &rotationAxis[0], 1.0f, 0.1f, 0.125);
+		    nk_property_float(ctx, "RY:", -1.0, &rotationAxis[1], 1.0f, 0.1f, 0.125);
+		    nk_property_float(ctx, "RZ:", -1.0, &rotationAxis[2], 1.0f, 0.1f, 0.125);
+		    nk_layout_row_dynamic(ctx, 12.5, 1);
+		    nk_property_float(ctx, "Deg:", -360.0f, &AngleDegree, 360.0f, 1.0f, 1);
+
+		}
 		nk_group_end(ctx);
 	    }
-	    if (nk_group_begin(ctx, "row2", NK_WINDOW_BORDER))
-	    {
-		nk_layout_row_dynamic(ctx, 10, 1);
-		nk_label(ctx, "Rotation.", NK_TEXT_LEFT);
-		nk_layout_row_dynamic(ctx, 15, 3);
-		nk_property_float(ctx, "X:", -10.0, &rotationAxis[0], 10.0f, 1.0f, 1);
-		nk_property_float(ctx, "Y:", -10.0, &rotationAxis[1], 10.0f, 1.0f, 1);
-		nk_property_float(ctx, "Z:", -10.0, &rotationAxis[2], 10.0f, 1.0f, 1);
-		nk_layout_row_dynamic(ctx, 15, 1);
-		nk_property_float(ctx, "Deg:", -360.0f, &AngleDegree, 360.0f, 1.0f, 100);
+	    nk_end(ctx);
 
-		nk_group_end(ctx);
-	    }
+	    glClearColor(bg.r, bg.g, bg.b, bg.a);
+	    RendererDraw(window, vaoID, &camera, projectionMat, programID, numIndices, translationVec, rotationAxis, AngleDegree);
+	    nk_glfw3_render(&glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
 	}
-	nk_end(ctx);	
-
-	glClearColor(bg.r, bg.g, bg.b, bg.a);
-        RendererDraw(window, vaoID, &camera, projectionMat, programID, numIndices, translationVec, rotationAxis, AngleDegree);
-	nk_glfw3_render(&glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
+	else { 
+	    glClearColor(bg.r, bg.g, bg.b, bg.a);
+	    RendererDraw(window, vaoID, &camera, projectionMat, programID, numIndices, translationVec, rotationAxis, AngleDegree);
+	}
     
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
-    
-        /* Poll for and process events */
-        glfwPollEvents();
     }
   
     ShaderUnbind();

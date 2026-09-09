@@ -20,24 +20,32 @@
 #include "Camera.h"
 #include <GLFW/glfw3.h>
 
-
-void HandleInput(GLFWwindow *win, double* posX, double* posY)
+void HandleInput(GLFWwindow *win, double* posX, double* posY, bool* menuShow, int* pressState, bool isOnWindow, float* NuklearX, float* NuklearY)
 {
-    if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) {
-      MoveForeward();
-    } else if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) {
-      MoveBackward();
-    } else if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) {
-      StrafeLeft();
-    } else if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) {
-      StrafeRight();
-    } else if (glfwGetKey(win, GLFW_KEY_R) == GLFW_PRESS) {
-      MoveUp();
-    } else if (glfwGetKey(win, GLFW_KEY_F) == GLFW_PRESS) {
-      MoveDown();
+    if (glfwGetKey(win, GLFW_KEY_M) == GLFW_PRESS && *pressState == GLFW_RELEASE) {
+	*menuShow = !(*menuShow);
+	*NuklearX = (float)(*posX);
+	*NuklearY = (float)(*posY);
     }
-
+    
     glfwGetCursorPos(win, posX, posY);
-    vec2 mousePosUpdate = {(float)*posX, (float)*posY};
-    MouseUpdate(mousePosUpdate);
+    if (!isOnWindow)
+    {
+	if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) {
+	  MoveForeward();
+	} else if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) {
+	  MoveBackward();
+	} else if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) {
+	  StrafeLeft();
+	} else if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) {
+	  StrafeRight();
+	} else if (glfwGetKey(win, GLFW_KEY_R) == GLFW_PRESS) {
+	  MoveUp();
+	} else if (glfwGetKey(win, GLFW_KEY_F) == GLFW_PRESS) {
+	  MoveDown();
+	}
+
+	vec2 mousePosUpdate = {*posX, *posY};
+	MouseUpdate(mousePosUpdate);
+    }
 }
