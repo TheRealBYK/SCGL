@@ -20,6 +20,7 @@
 #include <cglm/cglm.h>
 #include <stdbool.h>
 #include "Structs.h"
+#include "cglm/vec4.h"
 
 #define GET_WINDOW_SIZE(win, w, h) glfwGetFramebufferSize(win, &w, &h)
 
@@ -34,11 +35,11 @@ void VertexBufferUnbind()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void VertexBufferCreate(GLuint* bufferID ,const void* data, GLuint size)
+void VertexBufferCreate(GLuint* bufferID ,const void* data, GLuint size, GLenum usage, bool bind)
 {
     glGenBuffers(1, bufferID);
-    VertexBufferBind(*bufferID);
-    glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+    if (bind) VertexBufferBind(*bufferID);
+    glBufferData(GL_ARRAY_BUFFER, size, data, usage);
 }
 
 void VertexBufferCleanup(GLuint bufferID)
@@ -72,6 +73,18 @@ void IndexBufferCreate(GLuint* bufferID ,const unsigned short* data, GLuint coun
 void IndexBufferCleanup(GLuint bufferID)
 {
     glDeleteBuffers(1, &bufferID);
+}
+
+void UniformVec4f(const char* uniformName, GLuint progID, unsigned int count, vec4 data)
+{  
+    GLint UniformLocation = glGetUniformLocation(progID, uniformName);
+    if (UniformLocation == -1)
+    {
+	printf("Uniform \"%s\" not found!", uniformName);
+	return;
+    }
+
+    glUniform4fv(UniformLocation, count, (const GLfloat *)data);
 }
 
 void UniformMat4f(const char* uniformName, GLuint progID, unsigned int count, GLboolean trnaspose, mat4 data)
@@ -124,4 +137,8 @@ void CameraInit(mat4 projMat)
 void CameraUpdate(Camera* cam, mat4 projMat)
 {
     glm_perspective(glm_rad(cam->fov), ((float)cam->width) / (float)cam->height, cam->nearPlane, cam->farPlane, projMat);
+}
+
+void Vec4Copy(vec4 src, vec4 dest) {
+    glm_vec4_copy(src, dest);
 }
