@@ -458,7 +458,7 @@ static void set_style(struct nk_context *ctx, enum theme theme) {
     case THEME_BYK: {
 	table[NK_COLOR_TEXT] = nk_rgba(255, 255, 255, 255);
 	table[NK_COLOR_WINDOW] = nk_rgba(14, 14, 14, 192);
-	table[NK_COLOR_HEADER] = nk_rgba(41, 74, 122, 248);
+	table[NK_COLOR_HEADER] = nk_rgba(41, 74, 122, 255);
 	table[NK_COLOR_BORDER] = nk_rgba(62, 62, 71, 255);
 	table[NK_COLOR_BUTTON] = nk_rgba(181, 45, 69, 255);
 	table[NK_COLOR_BUTTON_HOVER] = nk_rgba(190, 50, 70, 255);
