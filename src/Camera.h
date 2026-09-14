@@ -53,7 +53,6 @@ void MouseUpdate(vec2 newMousePosition)
     glm_mat4_pick3(*rotator, collapsedRotator);
     glm_mat3_mulv(collapsedRotator, viewDirection, viewDirection);
     glm_vec2_copy(newMousePosition, oldMousePosition);
-    printf("CAM: %f,  %f\n", newMousePosition[0], newMousePosition[1]);
 }
 
 void GetWorldToViewMatrix(mat4 worldToViewMatrix)
