@@ -20,6 +20,7 @@
 #include "Abstractions.h"
 #include "Structs.h"
 #include "Shapes.h"
+#include "cglm/types.h"
 
 typedef enum {
     DRAW_TRIANGLE = 0,
@@ -28,7 +29,7 @@ typedef enum {
     DRAW_CAR = 3,
 }ShapeDraw;
 
-void ObjectData(GLuint* numIndices, ShapeDraw shapeDraw) {
+void ObjectData(GLuint* numIndices, GLuint VAO, ShapeDraw shapeDraw, unsigned short numInstances, GLuint* transformMatID, GLuint* tintVecID) {
     ShapeData shape;
     switch (shapeDraw) {
 	case DRAW_TRIANGLE:
@@ -47,11 +48,30 @@ void ObjectData(GLuint* numIndices, ShapeDraw shapeDraw) {
 	    printf("Invalid shape entered!\n");
     }
   
+    glBindVertexArray(VAO);
+
     GLuint vertexID;
-    VertexBufferCreate(&vertexID, shape.vertices, sizeof(Vertex) * shape.numVertices);
+    VertexBufferCreate(&vertexID, shape.vertices, sizeof(Vertex) * shape.numVertices, GL_STATIC_DRAW, true);
   
-    VertexAttribData(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-    VertexAttribData(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (char *)(sizeof(float) * 3));
+    VertexAttribData(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(float) * 0));
+    VertexAttribData(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(float) * 3));
+
+    VertexBufferCreate(transformMatID, 0, sizeof(mat4) * numInstances, GL_DYNAMIC_DRAW, true);
+
+    VertexAttribData(2, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(float) * 0));
+    VertexAttribData(3, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(float) * 4));
+    VertexAttribData(4, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(float) * 8));
+    VertexAttribData(5, 4, GL_FLOAT, GL_FALSE, sizeof(mat4), (void*)(sizeof(float) * 12));
+
+    glVertexAttribDivisor(2, 1);
+    glVertexAttribDivisor(3, 1);
+    glVertexAttribDivisor(4, 1);
+    glVertexAttribDivisor(5, 1);
+
+    VertexBufferCreate(tintVecID, 0, sizeof(vec4) * numInstances, GL_DYNAMIC_DRAW, true);
+    VertexAttribData(6, 4, GL_FLOAT, GL_FALSE, sizeof(vec4), (void*)(sizeof(float) * 0));
+    
+    glVertexAttribDivisor(6, 1);
   
     GLuint indexID;
     IndexBufferCreate(&indexID, shape.indices, shape.numIndices * sizeof(unsigned short));
@@ -63,4 +83,5 @@ void ObjectData(GLuint* numIndices, ShapeDraw shapeDraw) {
     shape.vertices = NULL;
     free(shape.indices);
     shape.indices = NULL;
+
 }
