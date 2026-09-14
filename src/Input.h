@@ -25,7 +25,7 @@ void HandleInput(GLFWwindow *win, double* posX, double* posY, bool* menuShow, in
 {
     if (glfwGetKey(win, GLFW_KEY_M) == GLFW_PRESS && *pressState == GLFW_RELEASE) {
 	clock_t currTime = clock();
-	if ((((double)(currTime - *lastTime) / CLOCKS_PER_SEC) * 1000.0f) > 50)
+	if ((((double)(currTime - *lastTime) / CLOCKS_PER_SEC) * 1000.0f) > 25)
 	{
 	    *menuShow = !(*menuShow);
 	    *NuklearX = (float)(*posX);
