@@ -20,15 +20,15 @@
 
 layout(location=0) in vec3 position;
 layout(location=1) in vec4 vertexColor;
+layout(location=2) in mat4 fullTransformMatrix;
+layout(location=6) in vec4 colorTint;
 
 out vec4 theColor;
 
-uniform mat4 u_FullMatrix;
-
 void main(){
     vec4 v = vec4(position, 1.0f);
-    gl_Position = u_FullMatrix * v;
-    theColor = vec4(vertexColor);
+    gl_Position = fullTransformMatrix * v;
+    theColor = vertexColor * colorTint;
 }
 
 #shader fragment
