@@ -19,13 +19,19 @@
 
 #include "Camera.h"
 #include <GLFW/glfw3.h>
+#include <time.h>
 
-void HandleInput(GLFWwindow *win, double* posX, double* posY, bool* menuShow, int* pressState, bool isOnWindow, float* NuklearX, float* NuklearY)
+void HandleInput(GLFWwindow *win, double* posX, double* posY, bool* menuShow, int* pressState, bool isOnWindow, float* NuklearX, float* NuklearY, clock_t* lastTime)
 {
     if (glfwGetKey(win, GLFW_KEY_M) == GLFW_PRESS && *pressState == GLFW_RELEASE) {
-	*menuShow = !(*menuShow);
-	*NuklearX = (float)(*posX);
-	*NuklearY = (float)(*posY);
+	clock_t currTime = clock();
+	if ((((double)(currTime - *lastTime) / CLOCKS_PER_SEC) * 1000.0f) > 50)
+	{
+	    *menuShow = !(*menuShow);
+	    *NuklearX = (float)(*posX);
+	    *NuklearY = (float)(*posY);
+	    *lastTime = currTime;
+	}
     }
     
     glfwGetCursorPos(win, posX, posY);
