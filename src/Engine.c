@@ -77,14 +77,16 @@ int main(void) {
     glfwMakeContextCurrent(window);
   
     glfwSwapInterval(1);
-
-   
+ 
+    unsigned short instances = 3;
 
     if (!gladLoadGL(glfwGetProcAddress)) {
 	fprintf(stderr, "Failed to initialize GLAD\n");
 	return -1;
     }
-    RendererInit(&vaoID, &programID, &numIndices, DRAW_CAR);
+    GLuint transformMatrixID;
+    GLuint colorTintID;
+    RendererInit(&vaoID, &programID, &numIndices, DRAW_CAR, instances, &transformMatrixID, &colorTintID);
 
     ctx = nk_glfw3_init(&glfw, window, NK_GLFW3_INSTALL_CALLBACKS);
 
@@ -106,9 +108,10 @@ int main(void) {
     mat4 projectionMat;
     Mat4Identify(projectionMat);
 
-    float translationVec[3] = {0.0f, 0.0f, -3.0f};
-    float rotationAxis[3] = {1.0f, 0.0f, 0.0f};
-    float AngleDegree = 54.0f;
+    vec3 translationVec[3] = {{1.75f, 0.0f, -3.0f}, {-1.75f, 0.0f, -3.0f}, {0.0f, 0.0f, -3.0f}};
+    vec3 rotationAxis[3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
+    float AngleDegree[3] = {54.0f, 120.0f, 90.0f};
+    vec4 colorTint[16] = {{1.0f, 1.0f, 1.0f, 0.5f}, {0.0f, 1.0f, 1.0f, 0.5f}, {1.0f, 0.0f, 1.0f, 0.5f}, {0.0f, 0.0f, 1.0f, 0.5f}, {1.0f, 1.0f, 0.0f, 0.5f}, {0.0f, 1.0f, 0.0f, 0.5f}, {1.0f, 0.0f, 0.0f, 0.5f}, {0.5f, 0.5f, 0.5f, 0.5f}, {0.75f, 0.75f, 0.75f, 0.5f}, {0.0f, 0.5f, 0.5f, 0.5f}, {0.5f, 0.0f, 0.5f, 0.5f}, {0.0f, 0.0f, 0.5f, 0.5f}, {0.5f, 0.5f, 0.0f, 0.5f}, {0.0f, 0.5f, 0.0f, 0.5f}, {0.5f, 0.0f, 0.0f, 0.5f}, {0.0f, 0.0f, 0.0f, 0.5f}};
 
     set_style(ctx, THEME_BYK);
     ctx->style.window.rounding = 10.0f;
@@ -118,8 +121,8 @@ int main(void) {
     ctx->style.property.rounding = 3.75f;
     ctx->style.property.inc_button.rounding = 3.75f;
     ctx->style.property.dec_button.rounding = 3.75f;
-    ctx->style.property.hover = nk_style_item_color(nk_rgba(40, 66, 140, 255));
-    ctx->style.property.edit.hover = nk_style_item_color(nk_rgba(40, 66, 140, 255));
+    ctx->style.property.hover = nk_style_item_color(nk_rgba(40, 66, 140, 220));
+    ctx->style.property.edit.hover = nk_style_item_color(nk_rgba(40, 66, 140, 220));
     bool showMenu = false;
     int wasMenuOpen = 0;
     int buttonState = GLFW_RELEASE;
@@ -128,16 +131,16 @@ int main(void) {
     double mousePositionY = 0.0f;
     float nuklearPositionX = 0.0f;
     float nuklearPositionY = 0.0f;
+    clock_t pressTime = 0;
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) { 
         /* Poll for and process events */
         glfwPollEvents();
-	printf("MouseX: %.2f, MouseY: %.2f\n", mousePositionX, mousePositionY);
+	RendererClear();
         /* Render here */
 	nk_glfw3_new_frame(&glfw);
 
-	HandleInput(window, &mousePositionX, &mousePositionY, &showMenu, &buttonState, nk_window_is_any_hovered(ctx), &nuklearPositionX, &nuklearPositionY);
-	printf("Handle\n");
+	HandleInput(window, &mousePositionX, &mousePositionY, &showMenu, &buttonState, nk_window_is_any_hovered(ctx), &nuklearPositionX, &nuklearPositionY, &pressTime);
 	
 	
 	
@@ -153,48 +156,44 @@ int main(void) {
 	{ 
 	    if (nk_begin(ctx,
 			 "Shape Control.",
-			 nk_rect(nuklearPositionX, nuklearPositionY, 350, 180),
+			 nk_rect(nuklearPositionX, nuklearPositionY, 467, 164),
 			 NK_WINDOW_BORDER |
 			 NK_WINDOW_MOVABLE |
 			 NK_WINDOW_SCALABLE |
 			 NK_WINDOW_MINIMIZABLE |
 			 NK_WINDOW_TITLE))
 	    {
-		nk_layout_row_dynamic(ctx, 60, 1);
-		if (nk_group_begin(ctx, "row1", 0))
-		{
-		    nk_layout_row_dynamic(ctx, 7.5, 1);
-		    nk_label(ctx, "Translation.", NK_TEXT_LEFT);
-		    nk_layout_row_dynamic(ctx, 12.5, 3);
-		    nk_property_float(ctx, "TX:", -10.0, &translationVec[0], 10.0f, 0.1f, 0.25);
-		    nk_property_float(ctx, "TY:", -10.0, &translationVec[1], 10.0f, 0.1f, 0.25);
-		    nk_property_float(ctx, "TZ:", -10.0, &translationVec[2], 10.0f, 0.1f, 0.25);
+		    for (int i = 0; i < instances; i++)
+		    {
+			nk_layout_row_static(ctx, 1.5f, 0, 0);
+			nk_layout_row_dynamic(ctx, 12.5f, 4);
+			nk_property_float(ctx, "#TX:", -10.0, &translationVec[i][0], 10.0f, 0.1f, 0.25);
+			nk_property_float(ctx, "#TY:", -10.0, &translationVec[i][1], 10.0f, 0.1f, 0.25);
+			nk_property_float(ctx, "#TZ:", -10.0, &translationVec[i][2], 10.0f, 0.1f, 0.25);
+			nk_label(ctx, "Translation.", NK_TEXT_LEFT);
 
-		}
-		nk_group_end(ctx);
-		if (nk_group_begin(ctx, "row2", NK_WINDOW_BORDER))
-		{
-		    nk_layout_row_dynamic(ctx, 7.5, 1);
-		    nk_label(ctx, "Rotation.", NK_TEXT_LEFT);
-		    nk_layout_row_dynamic(ctx, 12.5, 3);
-		    nk_property_float(ctx, "RX:", -1.0, &rotationAxis[0], 1.0f, 0.1f, 0.125);
-		    nk_property_float(ctx, "RY:", -1.0, &rotationAxis[1], 1.0f, 0.1f, 0.125);
-		    nk_property_float(ctx, "RZ:", -1.0, &rotationAxis[2], 1.0f, 0.1f, 0.125);
-		    nk_layout_row_dynamic(ctx, 12.5, 1);
-		    nk_property_float(ctx, "Deg:", -360.0f, &AngleDegree, 360.0f, 1.0f, 1);
+			nk_layout_row_static(ctx, 1.5f, 0, 0);
 
-		}
-		nk_group_end(ctx);
+			nk_layout_row_dynamic(ctx, 12.5f, 4);
+			nk_property_float(ctx, "#RX:", -1.0, &rotationAxis[i][0], 1.0f, 0.1f, 0.125);
+			nk_property_float(ctx, "#RY:", -1.0, &rotationAxis[i][1], 1.0f, 0.1f, 0.125);
+			nk_property_float(ctx, "#RZ:", -1.0, &rotationAxis[i][2], 1.0f, 0.1f, 0.125);
+			nk_label(ctx, "Rotation.", NK_TEXT_LEFT);
+			nk_layout_row_dynamic(ctx, 12.5f, 1);
+			nk_property_float(ctx, "#Deg:", -360.0f, &AngleDegree[i], 360.0f, 1.0f, 1);
+
+			nk_layout_row_static(ctx, 1.5f, 0, 0);
+		    }
 	    }
 	    nk_end(ctx);
 
 	    glClearColor(bg.r, bg.g, bg.b, bg.a);
-	    RendererDraw(window, vaoID, &camera, projectionMat, programID, numIndices, translationVec, rotationAxis, AngleDegree);
+	    RendererDraw(window, vaoID, &camera, projectionMat, programID, numIndices * 2, translationVec, rotationAxis, AngleDegree, instances, colorTint, transformMatrixID, colorTintID);
 	    nk_glfw3_render(&glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
 	}
 	else { 
 	    glClearColor(bg.r, bg.g, bg.b, bg.a);
-	    RendererDraw(window, vaoID, &camera, projectionMat, programID, numIndices, translationVec, rotationAxis, AngleDegree);
+	    RendererDraw(window, vaoID, &camera, projectionMat, programID, numIndices * 2, translationVec, rotationAxis, AngleDegree, instances, colorTint, transformMatrixID, colorTintID);
 	}
     
         /* Swap front and back buffers */
