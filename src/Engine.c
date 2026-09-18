@@ -15,7 +15,6 @@
 //
 // Maintainer: BYK <bykdev@proton.me>
 
-#include "cglm/types.h"
 #include <stdio.h>
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
@@ -42,6 +41,7 @@
 #include "Input.h"
 #include "ObjectData.h"
 #include "Renderer.h"
+#include "NuklearUI.h"
 
 GLuint programID;
 GLuint vaoID;
@@ -49,6 +49,7 @@ GLuint numIndices;
 
 
 int main(void) {
+    unsigned short instances = 8;
     struct nk_glfw glfw = {0};
     GLFWwindow *window;
     struct nk_context* ctx;
@@ -58,6 +59,13 @@ int main(void) {
 	static struct nk_color color_table[NK_COLOR_COUNT];
 	memcpy(color_table, nk_default_color_style, sizeof(color_table));
     #endif
+
+    if (instances > MAX_INSTANCES)
+    {
+	fprintf(stderr, "%d is over the allowed maximum amount of instances\nMax instances: %d\n", instances, MAX_INSTANCES);
+	return -1;
+    }
+
     /* Initialize the library */
     if (!glfwInit())
       return -1;
@@ -78,29 +86,24 @@ int main(void) {
   
     glfwSwapInterval(1);
  
-    unsigned short instances = 3;
 
     if (!gladLoadGL(glfwGetProcAddress)) {
 	fprintf(stderr, "Failed to initialize GLAD\n");
 	return -1;
     }
+
+
     GLuint transformMatrixID;
     GLuint colorTintID;
     RendererInit(&vaoID, &programID, &numIndices, DRAW_CAR, instances, &transformMatrixID, &colorTintID);
 
-    ctx = nk_glfw3_init(&glfw, window, NK_GLFW3_INSTALL_CALLBACKS);
+    struct nk_font_atlas *atlas;
 
-    if (ctx == NULL) {
-	fprintf(stderr, "nk_glfw3_init() FAILED\n");
+    if(NuklearInit(window, &glfw, &ctx, &bg, atlas) != 0) 
+    {
+	fprintf(stderr, "NuklearInit() FAILED\n");
 	return -1;
     }
-    {
-	struct nk_font_atlas *atlas;
-	nk_glfw3_font_stash_begin(&glfw, &atlas);
-	nk_glfw3_font_stash_end(&glfw);
-    }
-
-    bg.r = 0.2f, bg.g = 0.2f, bg.b = 0.2f, bg.a = 1.0f;
   
     vec2 mousePosition;
 
@@ -108,21 +111,65 @@ int main(void) {
     mat4 projectionMat;
     Mat4Identify(projectionMat);
 
-    vec3 translationVec[3] = {{1.75f, 0.0f, -3.0f}, {-1.75f, 0.0f, -3.0f}, {0.0f, 0.0f, -3.0f}};
-    vec3 rotationAxis[3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
-    float AngleDegree[3] = {54.0f, 120.0f, 90.0f};
-    vec4 colorTint[16] = {{1.0f, 1.0f, 1.0f, 0.5f}, {0.0f, 1.0f, 1.0f, 0.5f}, {1.0f, 0.0f, 1.0f, 0.5f}, {0.0f, 0.0f, 1.0f, 0.5f}, {1.0f, 1.0f, 0.0f, 0.5f}, {0.0f, 1.0f, 0.0f, 0.5f}, {1.0f, 0.0f, 0.0f, 0.5f}, {0.5f, 0.5f, 0.5f, 0.5f}, {0.75f, 0.75f, 0.75f, 0.5f}, {0.0f, 0.5f, 0.5f, 0.5f}, {0.5f, 0.0f, 0.5f, 0.5f}, {0.0f, 0.0f, 0.5f, 0.5f}, {0.5f, 0.5f, 0.0f, 0.5f}, {0.0f, 0.5f, 0.0f, 0.5f}, {0.5f, 0.0f, 0.0f, 0.5f}, {0.0f, 0.0f, 0.0f, 0.5f}};
+    vec3 translationVec[MAX_INSTANCES] = 
+    {
+	{+7.25f, +0.0f, -0.75f}, //  0
+	{+7.2f, +0.0f, -1.75f},  //  1
+	{+6.95f, +0.0f, -2.65f}, //  2
+	{+6.5f, +0.0f, -3.55f},  //  3
+	{+5.95f, +0.0f, -4.35f}, //  4
+	{+5.2f, +0.0f, -5.05f},  //  5
+	{+4.35f, +0.0f, -5.6f},  //  6
+	{+3.4f, +0.0f, -6.05f},  //  7
+	{+0.0f, +0.0f, -3.0f},   //  8
+	{-0.9f, +0.0f, -3.0f},   //  9
+	{-1.8f, +0.0f, -3.0f},   // 10
+	{-2.7f, +0.0f, -3.0f},   // 11
+	{-3.6f, +0.0f, -3.0f},   // 12
+	{-4.5f, +0.0f, -3.0f},   // 13
+	{-5.4f, +0.0f, -3.0f},   // 14
+	{-6.3f, +0.0f, -3.0f},   // 15
+    };
+    vec3 rotationAxis[MAX_INSTANCES] = 
+    {
+	{+0.0f, +0.37f, +0.0f}, // 0
+	{+0.0f, +0.37f, +0.0f}, // 1
+	{+0.0f, +0.37f, +0.0f}, // 2
+	{+0.0f, +0.37f, +0.0f}, // 3
+	{+0.0f, +0.37f, +0.0f}, // 4
+	{+0.0f, +0.37f, +0.0f}, // 5
+	{+0.0f, +0.37f, +0.0f}, // 6
+	{+0.0f, +0.37f, +0.0f}, // 7
+	{+0.0f, +0.37f, +0.0f}, // 8
+	{+0.0f, +0.37f, +0.0f}, // 9
+	{+0.0f, +0.37f, +0.0f}, // 10
+	{+0.0f, +0.37f, +0.0f}, // 11
+	{+0.0f, +0.37f, +0.0f}, // 12
+	{+0.0f, +0.37f, +0.0f}, // 13
+	{+0.0f, +0.37f, +0.0f}, // 14
+	{+0.0f, +0.37f, +0.0f}, // 15
+    };
+    float AngleDegree[MAX_INSTANCES] = {90.0f, 100.0f, 110.0f, 120.0f, 130.0f, 140.0f, 150.0f, 160.0f, 144.0f, 144.0f, 144.0f, 144.0f, 144.0f, 144.0f, 144.0f, 144.0f};
+    vec4 colorTint[MAX_INSTANCES] = 
+    {
+	{+1.0f, +1.0f, +1.0f, +0.5f},    //  0 - White
+	{+0.0f, +1.0f, +1.0f, +0.5f},    //  1 - Aquamarine
+	{+1.0f, +0.0f, +1.0f, +0.5f},    //  2 - Magenta
+	{+0.0f, +0.0f, +1.0f, +0.5f},    //  3 - Blue
+	{+1.0f, +1.0f, +0.0f, +0.5f},    //  4 - Yellow
+	{+0.0f, +1.0f, +0.0f, +0.5f},    //  5 - Lime
+	{+1.0f, +0.0f, +0.0f, +0.5f},    //  6 - Red
+	{+0.5f, +0.5f, +0.5f, +0.5f},    //  7 - Dark-Gray
+	{+0.75f, +0.75f, +0.75f, +0.5f}, //  8 - Light-Gray
+	{+0.0f, +0.5f, +0.5f, +0.5f},    //  9 - Cyan
+	{+0.5f, +0.0f, +0.5f, +0.5f},    // 10 - Purple
+	{+0.0f, +0.0f, +0.5f, +0.5f},    // 11 - Navy-Blue
+	{+0.5f, +0.5f, +0.0f, +0.5f},    // 12 - Olive
+	{+0.0f, +0.5f, +0.0f, +0.5f},    // 13 - Green
+	{+0.5f, +0.0f, +0.0f, +0.5f},    // 14 - Maroon
+	{+0.0f, +0.0f, +0.0f, +0.5f}     // 15 - Black
+    };
 
-    set_style(ctx, THEME_BYK);
-    ctx->style.window.rounding = 10.0f;
-    ctx->style.button.rounding = 10.0f;
-    ctx->style.combo.rounding = 10.0f;
-    ctx->style.edit.rounding = 10.0f;
-    ctx->style.property.rounding = 3.75f;
-    ctx->style.property.inc_button.rounding = 3.75f;
-    ctx->style.property.dec_button.rounding = 3.75f;
-    ctx->style.property.hover = nk_style_item_color(nk_rgba(40, 66, 140, 220));
-    ctx->style.property.edit.hover = nk_style_item_color(nk_rgba(40, 66, 140, 220));
     bool showMenu = false;
     int wasMenuOpen = 0;
     int buttonState = GLFW_RELEASE;
@@ -154,38 +201,7 @@ int main(void) {
 
 	if (showMenu)
 	{ 
-	    if (nk_begin(ctx,
-			 "Shape Control.",
-			 nk_rect(nuklearPositionX, nuklearPositionY, 467, 164),
-			 NK_WINDOW_BORDER |
-			 NK_WINDOW_MOVABLE |
-			 NK_WINDOW_SCALABLE |
-			 NK_WINDOW_MINIMIZABLE |
-			 NK_WINDOW_TITLE))
-	    {
-		    for (int i = 0; i < instances; i++)
-		    {
-			nk_layout_row_static(ctx, 1.5f, 0, 0);
-			nk_layout_row_dynamic(ctx, 12.5f, 4);
-			nk_property_float(ctx, "#TX:", -10.0, &translationVec[i][0], 10.0f, 0.1f, 0.25);
-			nk_property_float(ctx, "#TY:", -10.0, &translationVec[i][1], 10.0f, 0.1f, 0.25);
-			nk_property_float(ctx, "#TZ:", -10.0, &translationVec[i][2], 10.0f, 0.1f, 0.25);
-			nk_label(ctx, "Translation.", NK_TEXT_LEFT);
-
-			nk_layout_row_static(ctx, 1.5f, 0, 0);
-
-			nk_layout_row_dynamic(ctx, 12.5f, 4);
-			nk_property_float(ctx, "#RX:", -1.0, &rotationAxis[i][0], 1.0f, 0.1f, 0.125);
-			nk_property_float(ctx, "#RY:", -1.0, &rotationAxis[i][1], 1.0f, 0.1f, 0.125);
-			nk_property_float(ctx, "#RZ:", -1.0, &rotationAxis[i][2], 1.0f, 0.1f, 0.125);
-			nk_label(ctx, "Rotation.", NK_TEXT_LEFT);
-			nk_layout_row_dynamic(ctx, 12.5f, 1);
-			nk_property_float(ctx, "#Deg:", -360.0f, &AngleDegree[i], 360.0f, 1.0f, 1);
-
-			nk_layout_row_static(ctx, 1.5f, 0, 0);
-		    }
-	    }
-	    nk_end(ctx);
+	    NuklearWidget(ctx, instances, nuklearPositionX, nuklearPositionY, translationVec, rotationAxis, AngleDegree);
 
 	    glClearColor(bg.r, bg.g, bg.b, bg.a);
 	    RendererDraw(window, vaoID, &camera, projectionMat, programID, numIndices * 2, translationVec, rotationAxis, AngleDegree, instances, colorTint, transformMatrixID, colorTintID);
