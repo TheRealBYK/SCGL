@@ -27,6 +27,8 @@
 #include "cglm/mat4.h"
 #include "cglm/types.h"
 
+#define MAX_INSTANCES 16
+
 void RendererInit(GLuint* VAO, GLuint* progID, GLuint* numIndices, ShapeDraw shapeDraw, unsigned short numInstances, GLuint* transformMatrixID, GLuint* shaderTintID)
 {
     int version = gladLoadGL(glfwGetProcAddress);
@@ -38,7 +40,6 @@ void RendererInit(GLuint* VAO, GLuint* progID, GLuint* numIndices, ShapeDraw sha
     glGenVertexArrays(1, VAO);
     ObjectData(numIndices, *VAO, shapeDraw, numInstances, transformMatrixID, shaderTintID);
     InstallShaders(progID, SCGL_NONE, "res/shaders/Combo.glsl", "");
-
 }
 
 void RendererClear()
